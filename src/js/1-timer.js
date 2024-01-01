@@ -43,8 +43,15 @@ const options = {
 
 const datetimePicker = flatpickr(input, options);
 
+function lockInputFields() {
+  const inputs = document.querySelectorAll('input[type="text"]'); // Отримання усіх полів вводу тексту
+  inputs.forEach(input => {
+    input.disabled = true; // Блокування усіх полів вводу тексту
+  });
+}
+
 button.addEventListener('click', () => {
-    const selectedDateTime = userSelectedDate.getTime();
+  const selectedDateTime = userSelectedDate.getTime();
 
     timeInterval = setInterval(() => {
         const currentDateTime = new Date().getTime();
@@ -60,7 +67,8 @@ button.addEventListener('click', () => {
         daysTimer.textContent = addLeadingZero(result.days);
         hoursTimer.textContent = addLeadingZero(result.hours);
         minsTimer.textContent = addLeadingZero(result.minutes);
-        secsTimer.textContent = addLeadingZero(result.seconds);
+      secsTimer.textContent = addLeadingZero(result.seconds);
+       lockInputFields();
     }, 1000);
 });
 
