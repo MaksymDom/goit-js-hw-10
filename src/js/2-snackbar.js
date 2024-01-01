@@ -46,6 +46,7 @@ function events(event) {
         iconColor: '#FAFAFB',
         position: 'topRight',
       });
+      form.reset();
     },
     delay => {
       console.log(`❌ Rejected promise in ${delay}ms`);
@@ -58,8 +59,8 @@ function events(event) {
         // iconUrl: '../img/bi_x-octagon.svg',
         iconColor: '#FAFAFB',
         position: 'topRight',
-        form.reset();
       });
+      form.reset();
     }
   );
 }
