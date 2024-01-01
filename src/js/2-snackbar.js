@@ -58,6 +58,7 @@ function events(event) {
         // iconUrl: '../img/bi_x-octagon.svg',
         iconColor: '#FAFAFB',
         position: 'topRight',
+        form.reset();
       });
     }
   );
