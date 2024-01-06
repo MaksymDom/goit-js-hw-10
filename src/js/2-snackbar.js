@@ -1,66 +1,35 @@
-'use strict';
-
-// Описаний у документації
 import iziToast from 'izitoast';
-// Додатковий імпорт стилів
 import 'izitoast/dist/css/iziToast.min.css';
 
-const form = document.querySelector('.form');
+const promiseForm = document.querySelector('.form');
+const submitBtn = document.querySelector('button');
 
-form.addEventListener('submit', events);
-
-function events(event) {
+promiseForm.addEventListener('submit', event => {
   event.preventDefault();
-
-  const delayInput = document.querySelector('input[name="delay"]');
-  const stateInput = document.querySelector('input[name="state"]:checked');
-
-  const delay = parseInt(delayInput.value, 10);
-  const state = stateInput ? stateInput.value : null;
-
-  if (isNaN(delay) || delay <= 0) {
-    console.error('Please enter a valid positive delay value.');
-    return;
-  }
-
+  const getDelay = promiseForm.elements.delay.value;
+  const radioIn = promiseForm.elements.state.value;
+  event.target.reset();
   const promise = new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (state === 'fulfilled') {
-        resolve(delay);
-      } else if (state === 'rejected') {
-        reject(delay);
+      if (radioIn === 'fulfilled') {
+        resolve(`✅ Fulfilled promise in ${getDelay}ms`);
+      } else {
+        reject(`❌ Rejected promise in ${getDelay}ms`);
       }
-    }, delay);
+    }, getDelay);
   });
 
-  promise.then(
-    delay => {
-      console.log(`✅ Fulfilled promise in ${delay}ms`);
-      iziToast.show({
-        title: '',
-        message: `✅ Fulfilled promise in ${delay}ms`,
-        messageColor: '#FFFFFF',
-        backgroundColor: '#59A10D',
-        color: '#326101',
-        // iconUrl: '../img/ok.svg',
-        iconColor: '#FAFAFB',
+  promise
+    .then(value => {
+      iziToast.success({
         position: 'topRight',
+        message: `${value}`,
       });
-      form.reset();
-    },
-    delay => {
-      console.log(`❌ Rejected promise in ${delay}ms`);
-      iziToast.show({
-        title: '',
-        message: `❌ Rejected promise in ${delay}ms`,
-        messageColor: '#FFFFFF',
-        backgroundColor: '#EF4040',
-        color: '#B51B1B',
-        // iconUrl: '../img/bi_x-octagon.svg',
-        iconColor: '#FAFAFB',
+    })
+    .catch(error => {
+      iziToast.error({
         position: 'topRight',
+        message: `${error}`,
       });
-      form.reset();
-    }
-  );
-}
+    });
+});
