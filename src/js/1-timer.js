@@ -1,66 +1,99 @@
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
-const myInput = document.querySelector('#datetime-picker');
-const startBtn = document.querySelector('[data-start]');
+let targetDate;
 
-const timerDay = document.querySelector('[data-days]');
-const timerHours = document.querySelector('[data-hours]');
-const timerMinutes = document.querySelector('[data-minutes]');
-const timerSeconds = document.querySelector('[data-seconds]');
+const inputEl = document.querySelector('#datetime-picker');
+const buttonEl = document.querySelector('[data-start]');
+const timerEls = {
+  days: document.querySelector('[data-days]'),
+  hours: document.querySelector('[data-hours]'),
+  minutes: document.querySelector('[data-minutes]'),
+  seconds: document.querySelector('[data-seconds]'),
+};
 
-const options = {
+const inputOptions = {
   enableTime: true,
   time_24hr: true,
-  defaultDate: new Date(),
+  //   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    const selectedData = selectedDates[0];
-    const initialTimer = selectedData.getTime() - new Date().getTime();
-    const renderTimer = convertMs(initialTimer);
+    targetDate = selectedDates[0];
 
-    if (selectedData < new Date()) {
-      iziToast.error({
-        position: 'topRight',
+    const isDateValid = Date.now() < targetDate.getTime();
+    if (!isDateValid) {
+      iziToast.show({
+        title: 'Error',
+        titleColor: '#FFF',
+        titleSize: '16px',
         message: 'Please choose a date in the future',
+        messageColor: '#FFF',
+        messageSize: '16px',
+        position: 'topCenter',
+        backgroundColor: '#EF4040',
+        iconUrl: './octagon.svg',
+        timeout: 500000,
+        close: false,
+        buttons: [
+          [
+            `<button type="button" id="izi-close-button">
+                 <img src="./x.svg" alt="" width="16px" height="16px" />
+              </button>`,
+            function (instance, toast) {
+              instance.hide({}, toast, 'buttonName');
+            },
+          ],
+        ],
       });
-      startBtn.setAttribute('disabled', true);
-    } else {
-      startBtn.removeAttribute('disabled');
-      userSelectedDate = selectedData;
     }
+
+    setAccessElement(buttonEl, isDateValid);
+    // console.log(selectedDates[0]);
   },
 };
-const fp = flatpickr(myInput, options);
-let userSelectedDate = null;
 
-startBtn.addEventListener('click', () => {
-  const selectedTime = userSelectedDate.getTime();
-  myInput.value = '';
-  myInput.setAttribute('disabled', true);
-  startBtn.setAttribute('disabled', true);
+setAccessElement(buttonEl);
 
-  const timerInterval = setInterval(() => {
-    const currentTime = Date.now();
-    let remainingTime = selectedTime - currentTime;
-    const numberOfTimer = convertMs(remainingTime);
+inputEl.addEventListener('focus', () => {
+  inputOptions.defaultDate = new Date();
+  flatpickr(inputEl, inputOptions);
+});
 
-    if (remainingTime <= 0) {
-      iziToast.info({
-        position: 'topRight',
-        message: 'Time is up',
-      });
-      clearInterval(timerInterval);
+buttonEl.addEventListener('click', () => {
+  let timeLeft = 0;
+  let timeObject = {};
+  const intervalId = setInterval(() => {
+    timeLeft = targetDate.getTime() - Date.now();
+
+    if (timeLeft > 0) {
+      timeObject = convertMs(timeLeft);
+
+      for (const [key, elem] of Object.entries(timerEls)) {
+        elem.textContent =
+          key === 'days' && timeObject[key] > 99
+            ? timeObject[key]
+            : (elem.textContent = String(timeObject[key]).padStart(2, '0'));
+      }
     } else {
-      timerDay.textContent = `${numberOfTimer.days}`;
-      timerHours.textContent = `${numberOfTimer.hours}`;
-      timerMinutes.textContent = `${numberOfTimer.minutes}`;
-      timerSeconds.textContent = `${numberOfTimer.seconds}`;
+      clearInterval(intervalId);
+      setAccessElement(inputEl, true);
     }
   }, 1000);
+
+  setAccessElement(buttonEl);
+  setAccessElement(inputEl);
 });
+
+function setAccessElement(domElement, enable = false) {
+  let isDisabled = domElement.classList.contains('disabled-element');
+  if (isDisabled === enable) {
+    domElement.classList.toggle('disabled-element');
+  }
+  if (domElement.classList.contains('disabled-element')) domElement.blur();
+}
 
 function convertMs(ms) {
   // Number of milliseconds per unit of time
@@ -70,21 +103,13 @@ function convertMs(ms) {
   const day = hour * 24;
 
   // Remaining days
-  const days = Math.floor(ms / day)
-    .toString()
-    .padStart(2, '0');
+  const days = Math.floor(ms / day);
   // Remaining hours
-  const hours = Math.floor((ms % day) / hour)
-    .toString()
-    .padStart(2, '0');
+  const hours = Math.floor((ms % day) / hour);
   // Remaining minutes
-  const minutes = Math.floor(((ms % day) % hour) / minute)
-    .toString()
-    .padStart(2, '0');
+  const minutes = Math.floor(((ms % day) % hour) / minute);
   // Remaining seconds
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second)
-    .toString()
-    .padStart(2, '0');
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
 
   return { days, hours, minutes, seconds };
 }
